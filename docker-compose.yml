@@ -1,10 +1,16 @@
 services:
-  bot:
-    build: .
+  tg_bot:
+    build:
+      context: ./services/tg_bot
+      dockerfile: Dockerfile
     restart: always
     env_file:
-      - .env
-    environment:
-      - BOT_TOKEN=${BOT_TOKEN}
+      - ./services/tg_bot/.env
     volumes:
-      - ./src:/app/src
+      - ./services/tg_bot/src:/app/src
+
+  backend:
+    build:
+      context: ./services/backend
+      dockerfile: Dockerfile
+    restart: always

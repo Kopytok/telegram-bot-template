@@ -1,0 +1,69 @@
+import pytest
+from aiogram import types
+from bot.handlers import send_to_backend, press_b, default
+
+
+@pytest.mark.asyncio
+async def test_send_to_backend_response(mocker):
+    # Setup
+    response = mocker.AsyncMock()
+    response.json = mocker.AsyncMock(
+        return_value={"reply": "Backend response"}
+    )
+    response.raise_for_status = mocker.Mock()
+
+    post_cm = mocker.AsyncMock()
+    post_cm.__aenter__.return_value = response
+    post_cm.__aexit__.return_value = None
+
+    session = mocker.Mock()
+    session.__aenter__ = mocker.AsyncMock(return_value=session)
+    session.__aexit__ = mocker.AsyncMock(return_value=None)
+
+    session.post = mocker.Mock(return_value=post_cm)
+
+    mocker.patch("bot.handlers.ClientSession", return_value=session)
+
+    # Run
+    reply = await send_to_backend(123, "Hello")
+
+    # Check
+    assert reply == "Backend response"
+    session.post.assert_called_once_with(
+        "http://backend:8000/message",
+        json={"user_id": 123, "text": "Hello"}
+    )
+
+
+@pytest.mark.asyncio
+async def test_press_b(mocker):
+    # Setup
+    message = mocker.Mock(spec=types.Message)
+    message.text = "B"
+    message.answer = mocker.AsyncMock()
+
+    # Run
+    await press_b(message)
+
+    # Check
+    message.answer.assert_called_once_with("You pressed B")
+
+
+@pytest.mark.asyncio
+async def test_fallback_shows_keyboard(mocker):
+    # Setup
+    message = mocker.Mock(spec=types.Message)
+    message.text = "Something else"
+    message.answer = mocker.AsyncMock()
+
+    # Run
+    await default(message)
+
+    # Check
+    # Expect call with text + ANY keyboard markup
+    # We only test the first argument (text)
+    message.answer.assert_called()
+    args, kwargs = message.answer.call_args
+
+    assert args[0] == "Choose:"
+    assert "reply_markup" in kwargs

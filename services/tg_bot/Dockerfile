@@ -20,8 +20,6 @@ COPY src ./src
 # Use uv-created venv Python
 ENV VIRTUAL_ENV=/app/.venv
 ENV PATH="/app/.venv/bin:${PATH}"
-
-# Make src importable
 ENV PYTHONPATH=/app/src
 
 CMD ["python", "-m", "bot.main"]
