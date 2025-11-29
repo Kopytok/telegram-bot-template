@@ -16,6 +16,8 @@ services:
     restart: always
     env_file:
       - ./services/backend/.env
+    volumes:
+      - ./services/backend/src:/app/src
     depends_on:
       - db
 
