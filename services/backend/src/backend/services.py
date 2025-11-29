@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from sqlalchemy import (
     insert,
+    select,
 )
 
 from backend.models import (
@@ -8,7 +9,8 @@ from backend.models import (
     MessageOut,
 )
 from backend.db import (
-    messages_table,
+    message_table,
+    account_table,
     engine,
 )
 
@@ -16,13 +18,25 @@ from backend.db import (
 def process_message(msg: MessageIn) -> MessageOut:
 
     with engine.begin() as conn:
-        stmt = (
-            insert(messages_table)
-            .values(
-                chat_id=msg.user_id,
-                text=msg.text,
-                created_at=datetime.now(timezone.utc),
+        now = datetime.now(timezone.utc)
+
+        # Create account if not exists
+        any_account = conn.execute(
+            select(account_table)
+            .where(account_table.c.chat_id == msg.user_id)
+        ).first()
+
+        if any_account is None:
+            stmt = (
+                insert(account_table)
+                .values(chat_id=msg.user_id, created_at=now)
             )
+            conn.execute(stmt)
+
+        # Save message
+        stmt = (
+            insert(message_table)
+            .values(chat_id=msg.user_id, text=msg.text, created_at=now)
         )
         conn.execute(stmt)
 

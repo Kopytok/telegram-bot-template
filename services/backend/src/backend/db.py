@@ -30,8 +30,22 @@ else:
 
 metadata = MetaData()
 
-messages_table = Table(
-    "messages",
+account_table = Table(
+    "account",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("chat_id", BigInteger, nullable=False, index=True),
+    Column(
+        "created_at",
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    ),
+)
+
+message_table = Table(
+    "message",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("chat_id", BigInteger, nullable=False, index=True),
