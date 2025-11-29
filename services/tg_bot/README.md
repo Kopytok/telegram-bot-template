@@ -5,7 +5,9 @@ Container is used to:
 2. forward requests to other containers
 3. send messages back to Telegram users
 
-Place your bot token in the `.env` file within this directory, e.g.:
+## Prerequisites
+
+Place your `BOT_TOKEN` in the `.env` file within this directory, e.g.:
 
 ```bash
 # services/tg_bot/.env
