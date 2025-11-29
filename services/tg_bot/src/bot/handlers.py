@@ -8,14 +8,6 @@ router = Router()
 BACKEND_URL = "http://backend:8000/message"
 
 
-@router.message()
-async def default(message: Message):
-    await message.answer(
-        "Choose:",
-        reply_markup=main_keyboard(),
-    )
-
-
 @router.message(lambda m: m.text)
 async def any_text(message: Message):
     try:
@@ -41,3 +33,11 @@ async def send_to_backend(user_id: int, text: str) -> str:
             res.raise_for_status()
             data = await res.json()
             return data["reply"]
+
+
+@router.message()
+async def default(message: Message):
+    await message.answer(
+        "Choose:",
+        reply_markup=main_keyboard(),
+    )
