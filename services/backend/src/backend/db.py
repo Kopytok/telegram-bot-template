@@ -3,8 +3,6 @@ from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from pydantic import BaseModel
-
 from sqlalchemy import (
     create_engine,
     MetaData,
@@ -14,15 +12,22 @@ from sqlalchemy import (
     BigInteger,
     DateTime,
     Text,
-    insert,
 )
 from sqlalchemy.engine import Engine
-
-# --- Database setup ---
+from sqlalchemy.pool import StaticPool
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
 
-engine: Engine = create_engine(DATABASE_URL, future=True)
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(
+        DATABASE_URL,
+        future=True,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+else:
+    engine: Engine = create_engine(DATABASE_URL, future=True)
+
 metadata = MetaData()
 
 messages_table = Table(
@@ -47,46 +52,6 @@ def init_db() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _ = app
     init_db()
     yield
-
-
-# --- Models ---
-
-class MessageIn(BaseModel):
-    user_id: int
-    text: str
-
-
-class MessageOut(BaseModel):
-    reply: str
-
-
-class StoredMessage(BaseModel):
-    id: int
-    chat_id: int
-    text: str
-    created_at: datetime
-
-
-# --- Fast API ---
-
-app = FastAPI()
-
-
-@app.post("/message", response_model=MessageOut)
-async def handle_message(msg: MessageIn) -> MessageOut:
-
-    with engine.begin() as conn:
-        stmt = (
-            insert(messages_table)
-            .values(
-                chat_id=msg.user_id,
-                text=msg.text,
-                created_at=datetime.now(timezone.utc),
-            )
-        )
-        conn.execute(stmt)
-
-    tripled = " ".join([msg.text] * 3)
-    return MessageOut(reply=tripled)

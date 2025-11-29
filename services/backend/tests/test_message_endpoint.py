@@ -1,17 +1,15 @@
-import pytest
-from httpx import AsyncClient
+from fastapi.testclient import TestClient
 
-from backend.main import app
+from backend.api import app
+
+client = TestClient(app)
 
 
-@pytest.mark.asyncio
-async def test_message_endpoint():
-    # Trigger
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        resp = await client.post(
-            "/message",
-            json={"user_id": 123, "text": "Hello"},
-        )
+def test_message_endpoint(setup_test_db):
+    resp = client.post(
+        "/message",
+        json={"user_id": 123, "text": "Hello"},
+    )
 
     # Check
     assert resp.status_code == 200

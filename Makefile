@@ -7,3 +7,5 @@ up:
 down:
 	docker compose down -v
 
+psql:
+	docker compose exec db psql -U app_user -d app_db
