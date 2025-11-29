@@ -31,11 +31,6 @@ async def any_text(message: Message):
     await message.answer(backend_reply)
 
 
-@router.message(lambda m: m.text == "B")
-async def press_b(message: Message):
-    await message.answer("You pressed B")
-
-
 @router.message()
 async def default(message: Message):
     await message.answer(
