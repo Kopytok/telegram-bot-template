@@ -1,6 +1,6 @@
 import pytest
 from aiogram import types
-from bot.handlers import send_to_backend, press_b, default
+from bot.handlers import send_to_backend, default
 
 
 @pytest.mark.asyncio
@@ -33,20 +33,6 @@ async def test_send_to_backend_response(mocker):
         "http://backend:8000/message",
         json={"user_id": 123, "text": "Hello"}
     )
-
-
-@pytest.mark.asyncio
-async def test_press_b(mocker):
-    # Setup
-    message = mocker.Mock(spec=types.Message)
-    message.text = "B"
-    message.answer = mocker.AsyncMock()
-
-    # Run
-    await press_b(message)
-
-    # Check
-    message.answer.assert_called_once_with("You pressed B")
 
 
 @pytest.mark.asyncio
