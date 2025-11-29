@@ -5,11 +5,13 @@ from backend.models import (
     MessageIn,
     MessageOut,
 )
-from backend.services import process_message
+from backend.storage import persist_incoming_message
+from domain.tripled import triple_message
 
 app = FastAPI(lifespan=lifespan)
 
 
 @app.post("/message", response_model=MessageOut)
 async def handle_message(msg: MessageIn) -> MessageOut:
-    return process_message(msg)
+    persist_incoming_message(msg)
+    return MessageOut(reply=triple_message(msg.text))
