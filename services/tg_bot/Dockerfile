@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -12,7 +14,8 @@ RUN pip install --no-cache-dir uv
 
 # Install dependencies into a managed .venv
 COPY pyproject.toml uv.lock ./
-RUN uv sync --no-dev
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --no-dev
 
 # Copy source code
 COPY src ./src
