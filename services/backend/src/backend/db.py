@@ -34,7 +34,7 @@ account_table = Table(
     "account",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("chat_id", BigInteger, nullable=False, index=True),
+    Column("user_id", BigInteger, nullable=False, index=True),
     Column(
         "created_at",
         DateTime(timezone=True),
@@ -48,7 +48,7 @@ message_table = Table(
     "message",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("chat_id", BigInteger, nullable=False, index=True),
+    Column("user_id", BigInteger, nullable=False, index=True),
     Column("text", Text, nullable=False),
     Column(
         "created_at",
