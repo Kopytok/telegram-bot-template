@@ -1,43 +1,66 @@
+from typing import Optional
 from aiogram import Router
 from aiogram.types import Message
 from aiohttp import ClientSession
-from bot.keyboard import main_keyboard
+from bot.keyboard import main_keyboard, cancel_keyboard
 
 router = Router()
 
 BACKEND_URL = "http://backend:8000/message"
 
 
-@router.message(lambda m: m.text)
-async def any_text(message: Message):
+def detect_button_id(text: str) -> Optional[str]:
+    if text == "A":
+        return "A"
+    if text == "B":
+        return "B"
+    if text == "Cancel":
+        return "Cancel"
+    return None
+
+
+async def send_to_backend(
+    user_id: int,
+    text: str,
+    button_id: Optional[str] = None,
+) -> dict:
+
+    payload = {"user_id": user_id, "text": text}
+    if button_id is not None:
+        payload["button_id"] = button_id
+
+    async with ClientSession() as session:
+        async with session.post(BACKEND_URL, json=payload) as res:
+            res.raise_for_status()
+            return await res.json()
+
+
+@router.message()
+async def any_text(message: Message) -> None:
     try:
-        assert message.text is not None
         assert message.from_user is not None
     except AssertionError:
         # This should never happen
         return
 
+    request_text: str = message.text or ""
+    request_button_id: Optional[str] = detect_button_id(request_text)
+
     backend_reply = await send_to_backend(
-        message.from_user.id,
-        message.text,
+        user_id=message.from_user.id,
+        text=request_text,
+        button_id=request_button_id,
     )
-    await message.answer(backend_reply)
 
+    response_text: str = backend_reply["reply"]
+    keyboard_type: Optional[str] = backend_reply.get("keyboard_type")
 
-async def send_to_backend(user_id: int, text: str) -> str:
-    async with ClientSession() as session:
-        async with session.post(
-            BACKEND_URL,
-            json={"user_id": user_id, "text": text}
-        ) as res:
-            res.raise_for_status()
-            data = await res.json()
-            return data["reply"]
+    if keyboard_type == "cancel":
+        kb = cancel_keyboard()
+    else:
+        kb = main_keyboard()
 
-
-@router.message()
-async def default(message: Message):
     await message.answer(
-        "Choose:",
-        reply_markup=main_keyboard(),
+        response_text,
+        reply_markup=kb,
     )

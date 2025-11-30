@@ -1,14 +1,17 @@
 from datetime import datetime
 from pydantic import BaseModel
+from typing import Optional
 
 
 class MessageIn(BaseModel):
     user_id: int
     text: str
+    button_id: Optional[str] = None
 
 
 class MessageOut(BaseModel):
     reply: str
+    keyboard_type: Optional[str] = None
 
 
 class StoredMessage(BaseModel):

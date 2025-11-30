@@ -16,7 +16,7 @@ def test_message_endpoint(setup_test_db):
     # Check
     assert resp.status_code == 200
     data = resp.json()
-    assert data == {"reply": "Hello Hello Hello"}
+    assert data == {"reply": "Hello Hello Hello", "keyboard_type": "main"}
 
     with engine.connect() as conn:
 

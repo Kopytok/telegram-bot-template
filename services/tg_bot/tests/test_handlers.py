@@ -1,6 +1,6 @@
 import pytest
 from aiogram import types
-from bot.handlers import send_to_backend, default
+from bot.handlers import send_to_backend
 
 
 @pytest.mark.asyncio
@@ -28,28 +28,28 @@ async def test_send_to_backend_response(mocker):
     reply = await send_to_backend(123, "Hello")
 
     # Check
-    assert reply == "Backend response"
+    assert reply == {"reply": "Backend response"}
     session.post.assert_called_once_with(
         "http://backend:8000/message",
         json={"user_id": 123, "text": "Hello"}
     )
 
 
-@pytest.mark.asyncio
-async def test_fallback_shows_keyboard(mocker):
-    # Setup
-    message = mocker.Mock(spec=types.Message)
-    message.text = "Something else"
-    message.answer = mocker.AsyncMock()
-
-    # Run
-    await default(message)
-
-    # Check
-    # Expect call with text + ANY keyboard markup
-    # We only test the first argument (text)
-    message.answer.assert_called()
-    args, kwargs = message.answer.call_args
-
-    assert args[0] == "Choose:"
-    assert "reply_markup" in kwargs
+# @pytest.mark.asyncio
+# async def test_fallback_shows_keyboard(mocker):
+#     # Setup
+#     message = mocker.Mock(spec=types.Message)
+#     message.text = "Something else"
+#     message.answer = mocker.AsyncMock()
+# 
+#     # Run
+#     await default(message)
+#
+#    # Check
+#    # Expect call with text + ANY keyboard markup
+#    # We only test the first argument (text)
+#    message.answer.assert_called()
+#    args, kwargs = message.answer.call_args
+#
+#    assert args[0] == "Choose:"
+#    assert "reply_markup" in kwargs
