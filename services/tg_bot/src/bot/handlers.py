@@ -37,6 +37,10 @@ async def send_to_backend(
 
 @router.message()
 async def any_text(message: Message) -> None:
+    """
+    Main handler. Recognizes buttons, forwards any text message
+    to the backend and replies with the backend's response
+    """
     try:
         assert message.from_user is not None
     except AssertionError:
@@ -52,7 +56,14 @@ async def any_text(message: Message) -> None:
         button_id=request_button_id,
     )
 
-    response_text: str = backend_reply["reply"]
+    await handle_backend_reply(message, backend_reply)
+
+
+async def handle_backend_reply(
+    message: Message,
+    backend_reply: dict,
+) -> None:
+    reply_text: str = backend_reply["reply"]
     keyboard_type: Optional[str] = backend_reply.get("keyboard_type")
 
     if keyboard_type == "cancel":
@@ -61,6 +72,6 @@ async def any_text(message: Message) -> None:
         kb = main_keyboard()
 
     await message.answer(
-        response_text,
+        reply_text,
         reply_markup=kb,
     )

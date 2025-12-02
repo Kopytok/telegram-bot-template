@@ -1,6 +1,6 @@
 import pytest
-from aiogram import types
-from bot.handlers import send_to_backend
+from bot.handlers import send_to_backend, handle_backend_reply
+from fakes import FakeMessage
 
 
 @pytest.mark.asyncio
@@ -35,21 +35,16 @@ async def test_send_to_backend_response(mocker):
     )
 
 
-# @pytest.mark.asyncio
-# async def test_fallback_shows_keyboard(mocker):
-#     # Setup
-#     message = mocker.Mock(spec=types.Message)
-#     message.text = "Something else"
-#     message.answer = mocker.AsyncMock()
-# 
-#     # Run
-#     await default(message)
-#
-#    # Check
-#    # Expect call with text + ANY keyboard markup
-#    # We only test the first argument (text)
-#    message.answer.assert_called()
-#    args, kwargs = message.answer.call_args
-#
-#    assert args[0] == "Choose:"
-#    assert "reply_markup" in kwargs
+@pytest.mark.asyncio
+async def test_fallback_shows_keyboard():
+    # Setup
+    message = FakeMessage.create(user_id=321, text="Random text")
+    backend_reply = {"reply": "Choose:", "keyboard_type": "main"}
+
+    # Run
+    await handle_backend_reply(message, backend_reply)
+
+    # Check
+    call = message.calls[-1]
+    assert call.reply_text == "Choose:"
+    assert "reply_markup" in call.kwargs

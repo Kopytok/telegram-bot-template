@@ -7,7 +7,11 @@ from backend.db import account_table, message_table, engine
 client = TestClient(app)
 
 
-def test_message_endpoint(setup_test_db):
+def test_message_endpoint_saves_message_and_user(setup_test_db):
+    # Setup
+    _ = setup_test_db
+
+    # Run
     resp = client.post(
         "/message",
         json={"user_id": 123, "text": "Hello"},
