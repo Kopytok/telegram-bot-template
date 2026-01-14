@@ -7,6 +7,7 @@ from backend.models import (
 )
 from backend.storage import persist_incoming_message
 from domain.tripled import triple_message
+from llm import DialogueService, LLMClientFactory
 
 app = FastAPI(lifespan=lifespan)
 
@@ -28,7 +29,14 @@ async def handle_message(msg: MessageIn) -> MessageOut:
         keyboard_type = "cancel"
 
     else:
-        reply = triple_message(msg.text)
+        if msg.text.startswith("LLM:"):
+            llm = LLMClientFactory.create("chatgpt")
+            service = DialogueService(llm, "The system prompt")
+            reply = await service.handle_user_message(msg.text[4:])
+
+        else:
+            reply = triple_message(msg.text)
+
         keyboard_type = "main"
 
     return MessageOut(reply=reply, keyboard_type=keyboard_type)
