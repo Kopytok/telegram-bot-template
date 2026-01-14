@@ -16,7 +16,7 @@ class LLMClientFactory:
         response: Optional[str] = None,
     ) -> LLMClient:
 
-        if mode == "chat_gpt":
+        if mode == "chatgpt":
             from .chatgpt import ChatGPTClient
             return ChatGPTClient(
                 api_key=os.environ.get("OPENROUTER_API_KEY", ""),

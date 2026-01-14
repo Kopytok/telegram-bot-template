@@ -15,7 +15,11 @@ class ChatGPTClient(LLMClient):
         model = model or "openai/gpt-4o-mini"
         timeout = timeout or 30.0
 
-        self.client = AsyncOpenAI(api_key=api_key, timeout=timeout)
+        self.client = AsyncOpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+            timeout=timeout,
+        )
         self.model = model
 
     async def chat(
