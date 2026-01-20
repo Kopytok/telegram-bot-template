@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from redis.asyncio import Redis
 from sqlalchemy import (
     create_engine,
     MetaData,
@@ -15,6 +16,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import StaticPool
+
+from backend.settings import settings
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
 
@@ -66,6 +69,14 @@ def init_db() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    _ = app
+    app.state.redis = Redis(
+        host=settings.redis_host,
+        port=settings.redis_port,
+        db=settings.redis_db,
+        decode_responses=True,
+    )
     init_db()
-    yield
+    try:
+        yield
+    finally:
+        await app.state.redis.close()

@@ -1,4 +1,6 @@
 from datetime import datetime, timezone
+
+from fastapi import Request
 from sqlalchemy import (
     insert,
     select,
@@ -10,6 +12,8 @@ from backend.db import (
     engine,
 )
 from backend.models import MessageIn
+from llm.repo.redis import RedisConversationRepository
+from llm.repo.base import ConversationRepository
 
 
 def persist_incoming_message(msg: MessageIn) -> None:
@@ -35,3 +39,12 @@ def persist_incoming_message(msg: MessageIn) -> None:
             .values(user_id=msg.user_id, text=msg.text, created_at=now)
         )
         conn.execute(stmt)
+
+
+def get_conversation_repo(request: Request) -> ConversationRepository:
+    """
+    FastAPI dependency.
+    Creates a repository bound to the app Redis instance.
+    """
+    redis = request.app.state.redis
+    return RedisConversationRepository(redis)
