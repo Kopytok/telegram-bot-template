@@ -30,5 +30,5 @@ class Message:
 
 @dataclass
 class Conversation:
-    id: str              # chat_id / user_id
+    id: str                # chat_id / user_id
     messages: list[Message]
