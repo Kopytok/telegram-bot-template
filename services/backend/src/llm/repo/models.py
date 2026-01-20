@@ -26,9 +26,3 @@ class Message:
             f'"timestamp":"{self.timestamp}"'
             '}'
         )
-
-
-@dataclass
-class Conversation:
-    id: str                # chat_id / user_id
-    messages: list[Message]
