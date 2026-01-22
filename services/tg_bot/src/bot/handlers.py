@@ -71,13 +71,8 @@ async def handle_backend_reply(
     keyboard_type: Optional[str] = backend_reply.get("keyboard_type")
 
     if keyboard_type == "inline_flow":
-        await message.answer(
-            reply_text,
-            reply_markup=inline_keyboard(),
-        )
-        return
-
-    if keyboard_type == "cancel":
+        kb = inline_keyboard()
+    elif keyboard_type == "cancel":
         kb = cancel_keyboard()
     else:
         kb = main_keyboard()
