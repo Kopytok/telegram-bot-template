@@ -1,8 +1,12 @@
 from typing import Optional
 from aiogram import Router
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 from aiohttp import ClientSession
-from bot.keyboard import main_keyboard, cancel_keyboard
+from bot.keyboard import (
+    main_keyboard,
+    cancel_keyboard,
+    inline_keyboard,
+)
 
 router = Router()
 
@@ -65,6 +69,20 @@ async def handle_backend_reply(
 ) -> None:
     reply_text: str = backend_reply["reply"]
     keyboard_type: Optional[str] = backend_reply.get("keyboard_type")
+
+    if keyboard_type == "inline_flow":
+        # Remove reply keyboard
+        await message.answer(
+            " ",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+
+        # Edit with inline keyboard
+        await message.answer(
+            reply_text,
+            reply_markup=inline_keyboard(),
+        )
+        return
 
     if keyboard_type == "cancel":
         kb = cancel_keyboard()

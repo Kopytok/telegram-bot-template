@@ -1,4 +1,10 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import (
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    inline_keyboard_button,
+)
 
 
 def main_keyboard() -> ReplyKeyboardMarkup:
@@ -18,4 +24,15 @@ def cancel_keyboard() -> ReplyKeyboardMarkup:
         ],
         resize_keyboard=True,
         one_time_keyboard=False,
+    )
+
+
+def inline_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(
+                text="OK",
+                callback_data="OK",
+            )]
+        ]
     )

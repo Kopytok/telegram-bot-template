@@ -1,4 +1,6 @@
 import pytest
+from aiogram.types import ReplyKeyboardRemove, InlineKeyboardMarkup
+
 from bot.handlers import send_to_backend, handle_backend_reply
 from fakes import FakeMessage, FakeClientSession
 
@@ -33,6 +35,38 @@ async def test_fallback_shows_keyboard():
     await handle_backend_reply(message, backend_reply)
 
     # Check
-    call = message.calls[-1]
+    call = message.calls[0]
     assert call.reply_text == "Choose:"
     assert "reply_markup" in call.kwargs
+
+
+@pytest.mark.asyncio
+async def test_fallback_inline_flow():
+    # Setup
+    message = FakeMessage.create(user_id=321, text="Random text")
+    backend_reply = {
+        "reply": "Choose:",
+        "keyboard_type": "inline_flow",
+    }
+
+    # Run
+    await handle_backend_reply(message, backend_reply)
+
+    # Check
+    assert len(message.calls) == 2
+
+    first_call = message.calls[0]
+    assert first_call.reply_text == " "
+    assert "reply_markup" in first_call.kwargs
+    assert isinstance(
+        first_call.kwargs["reply_markup"],
+        ReplyKeyboardRemove,
+    ), "Should send Remove keyboard first"
+
+    second_call = message.calls[1]
+    assert second_call.reply_text == "Choose:"
+    assert "reply_markup" in second_call.kwargs
+    assert isinstance(
+        second_call.kwargs["reply_markup"],
+        InlineKeyboardMarkup,
+    ), "Should send Inline keyboard second"
