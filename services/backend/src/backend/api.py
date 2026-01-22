@@ -23,34 +23,21 @@ async def handle_message(
 ) -> MessageOut:
     persist_incoming_message(msg)
 
-    if msg.button_id == "Cancel":
-        reply = "Back to main menu"
-        keyboard_type = "main"
-
-    elif msg.button_id == "A":
-        reply = "Button A was pressed!"
-        keyboard_type = "cancel"
-
-    elif msg.button_id == "B":
-        reply = "Button B was pressed!"
-        keyboard_type = "cancel"
+    if msg.text.startswith("LLM:"):
+        llm = LLMClientFactory.create("chatgpt")
+        service = DialogueService(
+            llm,
+            repo=conversation_repo,
+            system_prompt="The system prompt",
+        )
+        reply = await service.handle_user_message(
+            user_id=str(msg.user_id),
+            text=msg.text[4:],
+        )
+        keyboard_type = "inline_flow"
 
     else:
-        if msg.text.startswith("LLM:"):
-            llm = LLMClientFactory.create("chatgpt")
-            service = DialogueService(
-                llm,
-                repo=conversation_repo,
-                system_prompt="The system prompt",
-            )
-            reply = await service.handle_user_message(
-                user_id=str(msg.user_id),
-                text=msg.text[4:],
-            )
-            keyboard_type = "inline_flow"
-
-        else:
-            reply = triple_message(msg.text)
-            keyboard_type = "main"
+        reply = triple_message(msg.text)
+        keyboard_type = None
 
     return MessageOut(reply=reply, keyboard_type=keyboard_type)

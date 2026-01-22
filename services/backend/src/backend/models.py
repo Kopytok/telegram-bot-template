@@ -6,7 +6,6 @@ from typing import Optional
 class MessageIn(BaseModel):
     user_id: int
     text: str
-    button_id: Optional[str] = None
 
 
 class MessageOut(BaseModel):

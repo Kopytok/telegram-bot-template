@@ -38,6 +38,7 @@ async def test_fallback_shows_keyboard():
     call = message.calls[0]
     assert call.reply_text == "Choose:"
     assert "reply_markup" in call.kwargs
+    assert isinstance(call.kwargs["reply_markup"], type(None))
 
 
 @pytest.mark.asyncio
