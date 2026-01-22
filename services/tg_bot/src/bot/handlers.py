@@ -1,6 +1,6 @@
 from typing import Optional
 from aiogram import Router
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message
 from aiohttp import ClientSession
 from bot.keyboard import (
     main_keyboard,
@@ -71,14 +71,6 @@ async def handle_backend_reply(
     keyboard_type: Optional[str] = backend_reply.get("keyboard_type")
 
     if keyboard_type == "inline_flow":
-        # Remove reply keyboard
-        remove_msg = await message.answer(
-            "...",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        await remove_msg.delete()
-
-        # Edit with inline keyboard
         await message.answer(
             reply_text,
             reply_markup=inline_keyboard(),
