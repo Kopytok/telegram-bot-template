@@ -27,6 +27,10 @@ class FakeMessage:
     def create(cls, user_id: int, text: str) -> "FakeMessage":
         return cls(from_user=FakeUser(id=user_id), text=text)
 
-    async def answer(self, text: str, **kwargs) -> None:
+    async def answer(self, text: str, **kwargs) -> 'FakeMessage':
         _ = text, kwargs
         self.calls.append(FakeMessageCall(text, kwargs))
+        return self
+
+    async def delete(self) -> 'FakeMessage':
+        return self

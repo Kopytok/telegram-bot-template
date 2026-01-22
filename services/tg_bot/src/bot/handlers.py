@@ -72,10 +72,11 @@ async def handle_backend_reply(
 
     if keyboard_type == "inline_flow":
         # Remove reply keyboard
-        await message.answer(
-            " ",
+        remove_msg = await message.answer(
+            "...",
             reply_markup=ReplyKeyboardRemove(),
         )
+        await remove_msg.delete()
 
         # Edit with inline keyboard
         await message.answer(

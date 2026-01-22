@@ -28,7 +28,7 @@ class DialogueService:
         history = await self.repo.get_messages(user_id)
         messages = [
             {"role": "system", "content": self.system_prompt},
-            *(h.__dict__ for h in history)
+            *(h.role_content for h in history)
         ]
         reply = await self.llm.chat(messages)
 

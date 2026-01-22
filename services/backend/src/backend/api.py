@@ -51,6 +51,6 @@ async def handle_message(
         else:
             reply = triple_message(msg.text)
 
-        keyboard_type = "main"
+        keyboard_type = "inline_flow"
 
     return MessageOut(reply=reply, keyboard_type=keyboard_type)

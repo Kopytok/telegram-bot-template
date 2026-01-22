@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Dict
 
 
 @dataclass
@@ -14,15 +14,21 @@ class Message:
     def from_json(cls, data: str) -> 'Message':
         try:
             d = json.loads(data)
-            return cls(d["role"], d["content"], d["timestamp"])
         except Exception:
             raise NotImplementedError(f"{data}")
 
+        try:
+            return cls(d["role"], d["content"], d["timestamp"])
+        except Exception:
+            raise NotImplementedError(f"{d}")
+
+    @property
+    def role_content(self) -> Dict[str, str]:
+        return {"role": self.role, "content": self.content}
+
     def to_json(self) -> str:
-        return (
-            '{'
-            f'"role":"{self.role}",'
-            f'"content":"{self.content}",'
-            f'"timestamp":"{self.timestamp}"'
-            '}'
-        )
+        return json.dumps({
+            "role": self.role,
+            "content": self.content,
+            "timestamp": str(self.timestamp),
+        })

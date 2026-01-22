@@ -56,7 +56,7 @@ async def test_fallback_inline_flow():
     assert len(message.calls) == 2
 
     first_call = message.calls[0]
-    assert first_call.reply_text == " "
+    assert first_call.reply_text == "..."
     assert "reply_markup" in first_call.kwargs
     assert isinstance(
         first_call.kwargs["reply_markup"],
