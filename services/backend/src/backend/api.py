@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends
+from pydantic import BaseModel
 
 from backend.db import lifespan
 from backend.models import (
@@ -41,3 +42,28 @@ async def handle_message(
         keyboard_type = None
 
     return MessageOut(reply=reply, keyboard_type=keyboard_type)
+
+
+class InlineActionRequest(BaseModel):
+    action: str
+    text: str
+
+
+class InlineActionResponse(BaseModel):
+    text: str
+
+
+@app.post("/some_endpoint", response_model=InlineActionResponse)
+async def handle_inline_action(
+    payload: InlineActionRequest,
+) -> InlineActionResponse:
+    action = payload.action
+    text = payload.text
+
+    if action == "LEFT":
+        new_text = "Left " + text
+    elif action == "RIGHT":
+        new_text = text + " Right"
+    else:
+        new_text = text
+    return InlineActionResponse(text=new_text)

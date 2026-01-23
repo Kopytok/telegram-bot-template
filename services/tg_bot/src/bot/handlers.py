@@ -1,14 +1,15 @@
 from typing import Optional
-from aiogram import Router
-from aiogram.types import Message
+from aiogram import Router, F
+from aiogram.types import Message, CallbackQuery
 from aiohttp import ClientSession
 from bot.keyboard import (
     inline_keyboard,
+    left_right_keyboard,
 )
+from bot.backend import send_some_endpoint
+from bot.settings import BACKEND_URL
 
 router = Router()
-
-BACKEND_URL = "http://backend:8000/message"
 
 
 async def send_to_backend(
@@ -18,7 +19,7 @@ async def send_to_backend(
     payload = {"user_id": user_id, "text": text}
 
     async with ClientSession() as session:
-        async with session.post(BACKEND_URL, json=payload) as res:
+        async with session.post(BACKEND_URL+"/message", json=payload) as res:
             res.raise_for_status()
             return await res.json()
 
@@ -55,9 +56,31 @@ async def handle_backend_reply(
     if keyboard_type == "inline_flow":
         kb = inline_keyboard()
     else:
-        kb = None
+        kb = left_right_keyboard()
 
     await message.answer(
         reply_text,
         reply_markup=kb,
+    )
+
+
+@router.callback_query(F.data.in_(["LEFT", "RIGHT"]))
+async def on_left_right_callback(query: CallbackQuery) -> None:
+    await query.answer()
+
+    message = query.message
+    if message is None:
+        return
+
+    current_text = message.text or ""
+    action = query.data or ""
+
+    new_text = await send_some_endpoint(
+        action=action,
+        text=current_text,
+    )
+
+    await message.edit_text(
+        new_text,
+        reply_markup=left_right_keyboard(),
     )
