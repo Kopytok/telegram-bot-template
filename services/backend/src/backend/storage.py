@@ -52,3 +52,11 @@ def get_conversation_repo(request: Request) -> ConversationRepository:
         return RedisConversationRepository(redis)
     except Exception:
         return InMemoryConversationRepository()
+
+
+def get_message_text(message_id: int) -> str:
+    try:
+        _ = message_id
+        return "YO"
+    except KeyError:
+        raise ValueError("Message not found")

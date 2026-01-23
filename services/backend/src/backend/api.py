@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
 
 from backend.db import lifespan
@@ -9,6 +9,7 @@ from backend.models import (
 from backend.storage import (
     persist_incoming_message,
     get_conversation_repo,
+    get_message_text,
 )
 from domain.tripled import triple_message
 from llm import DialogueService, LLMClientFactory
@@ -45,8 +46,9 @@ async def handle_message(
 
 
 class InlineActionRequest(BaseModel):
-    action: str
-    text: str
+    message_id: int
+    left: bool = False
+    right: bool = False
 
 
 class InlineActionResponse(BaseModel):
@@ -57,13 +59,16 @@ class InlineActionResponse(BaseModel):
 async def handle_inline_action(
     payload: InlineActionRequest,
 ) -> InlineActionResponse:
-    action = payload.action
-    text = payload.text
+    try:
+        text = get_message_text(payload.message_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Message not found")
 
-    if action == "LEFT":
-        new_text = "Left " + text
-    elif action == "RIGHT":
-        new_text = text + " Right"
-    else:
-        new_text = text
+    new_text = text
+    if payload.left:
+        new_text = "Left " + new_text
+
+    if payload.right:
+        new_text = new_text + " Right"
+
     return InlineActionResponse(text=new_text)
