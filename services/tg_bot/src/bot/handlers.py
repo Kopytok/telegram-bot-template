@@ -10,7 +10,7 @@ from bot.backend import (
     send_some_endpoint,
     save_answer_endpoint,
 )
-from bot.settings import BACKEND_URL
+from bot.const import BACKEND_URL
 
 router = Router()
 

@@ -1,5 +1,5 @@
 from aiohttp import ClientSession
-from bot.settings import BACKEND_URL
+from bot.const import BACKEND_URL
 
 
 async def send_some_endpoint(

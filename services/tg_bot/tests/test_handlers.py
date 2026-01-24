@@ -26,9 +26,14 @@ async def test_send_to_backend_response(mocker):
 
 
 @pytest.mark.asyncio
-async def test_fallback_shows_keyboard():
+async def test_fallback_shows_keyboard(mocker):
     # Setup
-    message = FakeMessage.create(user_id=321, text="Random text")
+    save_answer_mock = mocker.patch("bot.handlers.save_answer_endpoint")
+    message = FakeMessage.create(
+        message_id=132,
+        user_id=321,
+        text="Random text",
+    )
     backend_reply = {"reply": "Choose:", "keyboard_type": "main"}
 
     # Run
@@ -38,13 +43,20 @@ async def test_fallback_shows_keyboard():
     call = message.calls[0]
     assert call.reply_text == "Choose:"
     assert "reply_markup" in call.kwargs
-    assert isinstance(call.kwargs["reply_markup"], type(None))
+    assert isinstance(call.kwargs["reply_markup"], InlineKeyboardMarkup)
+
+    assert save_answer_mock.called
 
 
 @pytest.mark.asyncio
-async def test_fallback_inline_flow():
+async def test_fallback_inline_flow(mocker):
     # Setup
-    message = FakeMessage.create(user_id=321, text="Random text")
+    save_answer_mock = mocker.patch("bot.handlers.save_answer_endpoint")
+    message = FakeMessage.create(
+        message_id=132,
+        user_id=321,
+        text="Random text",
+    )
     backend_reply = {
         "reply": "Choose:",
         "keyboard_type": "inline_flow",
@@ -63,3 +75,4 @@ async def test_fallback_inline_flow():
         first_call.kwargs["reply_markup"],
         InlineKeyboardMarkup,
     ), "Should send Inline keyboard"
+    assert save_answer_mock.called
