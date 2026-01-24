@@ -9,7 +9,8 @@ from backend.models import (
 from backend.storage import (
     persist_incoming_message,
     get_conversation_repo,
-    get_message_text,
+    get_bot_message_text,
+    store_bot_message,
 )
 from domain.tripled import triple_message
 from llm import DialogueService, LLMClientFactory
@@ -60,7 +61,7 @@ async def handle_inline_action(
     payload: InlineActionRequest,
 ) -> InlineActionResponse:
     try:
-        text = get_message_text(payload.message_id)
+        text = get_bot_message_text(payload.message_id)
     except Exception:
         raise HTTPException(status_code=404, detail="Message not found")
 
@@ -72,3 +73,25 @@ async def handle_inline_action(
         new_text = new_text + " Right"
 
     return InlineActionResponse(text=new_text)
+
+
+class SaveAnswerRequest (BaseModel):
+    message_id: int
+    user_id: int
+    text: str
+
+
+class SaveAnswerResponse (BaseModel):
+    status: str
+
+
+@app.post("/save_answer", response_model=SaveAnswerResponse)
+async def handle_save_answer(
+    payload: SaveAnswerRequest,
+) -> SaveAnswerResponse:
+    store_bot_message(
+        message_id=payload.message_id,
+        user_id=payload.user_id,
+        text=payload.text,
+    )
+    return SaveAnswerResponse(status="OK")

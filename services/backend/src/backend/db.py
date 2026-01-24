@@ -62,6 +62,33 @@ message_table = Table(
     ),
 )
 
+bot_message_table = Table(
+    "bot_message",
+    metadata,
+    Column(
+        "message_id",
+        BigInteger,
+        primary_key=True,
+    ),
+    Column(
+        "user_id",
+        BigInteger,
+        nullable=False,
+        index=True,
+    ),
+    Column(
+        "text",
+        Text,
+        nullable=False,
+    ),
+    Column(
+        "created_at",
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    ),
+)
 
 def init_db() -> None:
     metadata.create_all(bind=engine)

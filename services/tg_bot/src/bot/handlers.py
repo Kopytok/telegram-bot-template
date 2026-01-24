@@ -6,7 +6,10 @@ from bot.keyboard import (
     inline_keyboard,
     left_right_keyboard,
 )
-from bot.backend import send_some_endpoint
+from bot.backend import (
+    send_some_endpoint,
+    save_answer_endpoint,
+)
 from bot.settings import BACKEND_URL
 
 router = Router()
@@ -30,16 +33,10 @@ async def any_text(message: Message) -> None:
     Main handler. Recognizes buttons, forwards any text message
     to the backend and replies with the backend's response
     """
-    try:
-        assert message.from_user is not None
-    except AssertionError:
-        # This should never happen
-        return
-
     request_text: str = message.text or ""
 
     backend_reply = await send_to_backend(
-        user_id=message.from_user.id,
+        user_id=message.chat.id,
         text=request_text,
     )
 
@@ -58,9 +55,14 @@ async def handle_backend_reply(
     else:
         kb = left_right_keyboard()
 
-    await message.answer(
+    response = await message.answer(
         reply_text,
         reply_markup=kb,
+    )
+    await save_answer_endpoint(
+        message_id=response.message_id,
+        user_id=response.chat.id,
+        text=reply_text,
     )
 
 
@@ -72,13 +74,11 @@ async def on_left_right_callback(query: CallbackQuery) -> None:
     if message is None:
         return
 
-    current_text = message.text or ""
-    action = query.data or ""
+    message_id = message.message_id
+    left = True if query.data == "LEFT" else False
+    right = True if query.data == "RIGHT" else False
 
-    new_text = await send_some_endpoint(
-        action=action,
-        text=current_text,
-    )
+    new_text = await send_some_endpoint(message_id, left, right)
 
     await message.edit_text(
         new_text,

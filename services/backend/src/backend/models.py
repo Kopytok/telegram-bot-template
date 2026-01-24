@@ -1,4 +1,3 @@
-from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
 
@@ -13,8 +12,7 @@ class MessageOut(BaseModel):
     keyboard_type: Optional[str] = None
 
 
-class StoredMessage(BaseModel):
-    id: int
+class BotMessage(BaseModel):
+    message_id: int
     user_id: int
     text: str
-    created_at: datetime
