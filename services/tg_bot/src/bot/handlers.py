@@ -1,36 +1,28 @@
 from typing import Optional
-from aiogram import Router
-from aiogram.types import Message
+from aiogram import Router, F
+from aiogram.types import Message, CallbackQuery
 from aiohttp import ClientSession
-from bot.keyboard import main_keyboard, cancel_keyboard
+from bot.keyboard import (
+    inline_keyboard,
+    left_right_keyboard,
+)
+from bot.backend import (
+    send_some_endpoint,
+    save_answer_endpoint,
+)
+from bot.const import BACKEND_URL
 
 router = Router()
-
-BACKEND_URL = "http://backend:8000/message"
-
-
-def detect_button_id(text: str) -> Optional[str]:
-    if text == "A":
-        return "A"
-    if text == "B":
-        return "B"
-    if text == "Cancel":
-        return "Cancel"
-    return None
 
 
 async def send_to_backend(
     user_id: int,
     text: str,
-    button_id: Optional[str] = None,
 ) -> dict:
-
     payload = {"user_id": user_id, "text": text}
-    if button_id is not None:
-        payload["button_id"] = button_id
 
     async with ClientSession() as session:
-        async with session.post(BACKEND_URL, json=payload) as res:
+        async with session.post(BACKEND_URL+"/message", json=payload) as res:
             res.raise_for_status()
             return await res.json()
 
@@ -41,19 +33,11 @@ async def any_text(message: Message) -> None:
     Main handler. Recognizes buttons, forwards any text message
     to the backend and replies with the backend's response
     """
-    try:
-        assert message.from_user is not None
-    except AssertionError:
-        # This should never happen
-        return
-
     request_text: str = message.text or ""
-    request_button_id: Optional[str] = detect_button_id(request_text)
 
     backend_reply = await send_to_backend(
-        user_id=message.from_user.id,
+        user_id=message.chat.id,
         text=request_text,
-        button_id=request_button_id,
     )
 
     await handle_backend_reply(message, backend_reply)
@@ -66,12 +50,37 @@ async def handle_backend_reply(
     reply_text: str = backend_reply["reply"]
     keyboard_type: Optional[str] = backend_reply.get("keyboard_type")
 
-    if keyboard_type == "cancel":
-        kb = cancel_keyboard()
+    if keyboard_type == "inline_flow":
+        kb = inline_keyboard()
     else:
-        kb = main_keyboard()
+        kb = left_right_keyboard()
 
-    await message.answer(
+    response = await message.answer(
         reply_text,
         reply_markup=kb,
+    )
+    await save_answer_endpoint(
+        message_id=response.message_id,
+        user_id=response.chat.id,
+        text=reply_text,
+    )
+
+
+@router.callback_query(F.data.in_(["LEFT", "RIGHT"]))
+async def on_left_right_callback(query: CallbackQuery) -> None:
+    await query.answer()
+
+    message = query.message
+    if message is None:
+        return
+
+    message_id = message.message_id
+    left = True if query.data == "LEFT" else False
+    right = True if query.data == "RIGHT" else False
+
+    new_text = await send_some_endpoint(message_id, left, right)
+
+    await message.edit_text(
+        new_text,
+        reply_markup=left_right_keyboard(),
     )

@@ -9,24 +9,43 @@ class FakeMessageCall:
 
 
 @dataclass
-class FakeUser:
+class FakeChat:
     id: int
 
 
 @dataclass
 class FakeMessage:
-    from_user: FakeUser
+    chat: FakeChat
     text: str
 
-    def __init__(self, from_user: FakeUser, text: str) -> None:
-        self.from_user = from_user
+    def __init__(
+        self,
+        message_id: int,
+        chat: FakeChat,
+        text: str,
+    ) -> None:
+        self.message_id = message_id
+        self.chat = chat
         self.text = text
         self.calls: List[FakeMessageCall] = []
 
     @classmethod
-    def create(cls, user_id: int, text: str) -> "FakeMessage":
-        return cls(from_user=FakeUser(id=user_id), text=text)
+    def create(
+        cls,
+        message_id: int,
+        user_id: int,
+        text: str,
+    ) -> "FakeMessage":
+        return cls(
+            message_id=message_id,
+            chat=FakeChat(id=user_id),
+            text=text,
+        )
 
-    async def answer(self, text: str, **kwargs) -> None:
+    async def answer(self, text: str, **kwargs) -> 'FakeMessage':
         _ = text, kwargs
         self.calls.append(FakeMessageCall(text, kwargs))
+        return self
+
+    async def delete(self) -> 'FakeMessage':
+        return self

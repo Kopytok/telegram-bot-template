@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
+from pydantic import BaseModel
 
 from backend.db import lifespan
 from backend.models import (
@@ -8,6 +9,8 @@ from backend.models import (
 from backend.storage import (
     persist_incoming_message,
     get_conversation_repo,
+    get_bot_message_text,
+    store_bot_message,
 )
 from domain.tripled import triple_message
 from llm import DialogueService, LLMClientFactory
@@ -23,34 +26,72 @@ async def handle_message(
 ) -> MessageOut:
     persist_incoming_message(msg)
 
-    if msg.button_id == "Cancel":
-        reply = "Back to main menu"
-        keyboard_type = "main"
-
-    elif msg.button_id == "A":
-        reply = "Button A was pressed!"
-        keyboard_type = "cancel"
-
-    elif msg.button_id == "B":
-        reply = "Button B was pressed!"
-        keyboard_type = "cancel"
+    if msg.text.startswith("LLM:"):
+        llm = LLMClientFactory.create("chatgpt")
+        service = DialogueService(
+            llm,
+            repo=conversation_repo,
+            system_prompt="The system prompt",
+        )
+        reply = await service.handle_user_message(
+            user_id=str(msg.user_id),
+            text=msg.text[4:],
+        )
+        keyboard_type = "inline_flow"
 
     else:
-        if msg.text.startswith("LLM:"):
-            llm = LLMClientFactory.create("chatgpt")
-            service = DialogueService(
-                llm,
-                repo=conversation_repo,
-                system_prompt="The system prompt",
-            )
-            reply = await service.handle_user_message(
-                user_id=str(msg.user_id),
-                text=msg.text[4:],
-            )
-
-        else:
-            reply = triple_message(msg.text)
-
-        keyboard_type = "main"
+        reply = triple_message(msg.text)
+        keyboard_type = None
 
     return MessageOut(reply=reply, keyboard_type=keyboard_type)
+
+
+class InlineActionRequest(BaseModel):
+    message_id: int
+    left: bool = False
+    right: bool = False
+
+
+class InlineActionResponse(BaseModel):
+    text: str
+
+
+@app.post("/some_endpoint", response_model=InlineActionResponse)
+async def handle_inline_action(
+    payload: InlineActionRequest,
+) -> InlineActionResponse:
+    try:
+        text = get_bot_message_text(payload.message_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    new_text = text
+    if payload.left:
+        new_text = "Left " + new_text
+
+    if payload.right:
+        new_text = new_text + " Right"
+
+    return InlineActionResponse(text=new_text)
+
+
+class SaveAnswerRequest (BaseModel):
+    message_id: int
+    user_id: int
+    text: str
+
+
+class SaveAnswerResponse (BaseModel):
+    status: str
+
+
+@app.post("/save_answer", response_model=SaveAnswerResponse)
+async def handle_save_answer(
+    payload: SaveAnswerRequest,
+) -> SaveAnswerResponse:
+    store_bot_message(
+        message_id=payload.message_id,
+        user_id=payload.user_id,
+        text=payload.text,
+    )
+    return SaveAnswerResponse(status="OK")
