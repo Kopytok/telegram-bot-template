@@ -13,4 +13,4 @@ class InMemoryAnswerConfigRepo:
         try:
             return self.memory[chat_id]
         except KeyError:
-            raise ValueError("AnswerConfig not found")
+            return (False, False)
