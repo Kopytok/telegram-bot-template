@@ -1,21 +1,15 @@
-from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Protocol
 from .models import Message
 
 
-class ConversationRepository(ABC):
-    @abstractmethod
-    async def get_messages(self, conversation_id: str) -> List[Message]:
-        pass
+class ConversationRepo(Protocol):
 
-    @abstractmethod
+    async def get_messages(self, conversation_id: str) -> List[Message]: ...
+
     async def append_message(
         self,
         conversation_id: str,
         message: Message,
-    ) -> None:
-        pass
+    ) -> None: ...
 
-    @abstractmethod
-    async def clear(self, conversation_id: str) -> None:
-        pass
+    async def clear(self, conversation_id: str) -> None: ...

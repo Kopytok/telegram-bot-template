@@ -1,8 +1,7 @@
-from .base import ConversationRepository
 from .models import Message
 
 
-class InMemoryConversationRepository(ConversationRepository):
+class InMemoryConversationRepo:
     def __init__(self):
         self.storage: dict[str, list[Message]] = {}
 
@@ -12,5 +11,5 @@ class InMemoryConversationRepository(ConversationRepository):
     async def append_message(self, conversation_id: str, message: Message):
         self.storage.setdefault(conversation_id, []).append(message)
 
-    async def clear(self, conversation_id: str):
+    async def clear(self, conversation_id: str) -> None:
         self.storage.pop(conversation_id, None)

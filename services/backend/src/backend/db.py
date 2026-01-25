@@ -37,7 +37,7 @@ account_table = Table(
     "account",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("user_id", BigInteger, nullable=False, index=True),
+    Column("chat_id", BigInteger, nullable=False, index=True),
     Column(
         "created_at",
         DateTime(timezone=True),
@@ -51,7 +51,7 @@ message_table = Table(
     "message",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("user_id", BigInteger, nullable=False, index=True),
+    Column("chat_id", BigInteger, nullable=False, index=True),
     Column("text", Text, nullable=False),
     Column(
         "created_at",
@@ -71,7 +71,7 @@ bot_message_table = Table(
         primary_key=True,
     ),
     Column(
-        "user_id",
+        "chat_id",
         BigInteger,
         nullable=False,
         index=True,
@@ -89,6 +89,7 @@ bot_message_table = Table(
         index=True,
     ),
 )
+
 
 def init_db() -> None:
     metadata.create_all(bind=engine)
