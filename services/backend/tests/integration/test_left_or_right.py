@@ -2,6 +2,8 @@ import pytest
 
 from fastapi.testclient import TestClient
 from backend.api import app
+from backend.repos.factory import get_bot_message_repo
+from backend.repos.memory.bot_message import InMemoryBotMessageRepo
 
 client = TestClient(app)
 
@@ -9,15 +11,18 @@ client = TestClient(app)
 @pytest.mark.parametrize(
     "left,right,expected",
     (
-        (True, True, "Left YO Right"),
-        (True, False, "Left YO"),
-        (False, True, "YO Right"),
-        (False, False, "YO"),
+        (True, True, "Left Yo Right"),
+        (True, False, "Left Yo"),
+        (False, True, "Yo Right"),
+        (False, False, "Yo"),
     )
 )
-def test_left_or_right(mocker, left, right, expected):
+def test_left_or_right(left, right, expected):
     # Setup
-    mocker.patch("backend.api.get_bot_message_text", return_value="YO")
+    fake_bot_message_repo = InMemoryBotMessageRepo()
+    fake_bot_message_repo.create(123, 9, "Yo")
+    app.dependency_overrides[get_bot_message_repo] = \
+        lambda: fake_bot_message_repo
 
     # Run
     res = client.post(

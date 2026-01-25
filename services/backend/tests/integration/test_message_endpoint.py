@@ -3,18 +3,31 @@ from sqlalchemy import select
 
 from backend.api import app
 from backend.db import account_table, message_table, engine
+from backend.repos.base import AccountRepo
+from backend.repos.factory import (
+    get_user_message_repo,
+    get_account_repo,
+)
+from backend.repos.memory.account import InMemoryAccountRepo
+from backend.repos.memory.user_message import InMemoryUserMessageRepo
 
 client = TestClient(app)
 
 
-def test_message_endpoint_saves_message_and_user(setup_test_db):
+def test_message_endpoint_persists_message():
     # Setup
-    _ = setup_test_db
+    fake_user_message_repo = InMemoryUserMessageRepo()
+    app.dependency_overrides[get_user_message_repo] = \
+        lambda: fake_user_message_repo
+    fake_account_repo = InMemoryAccountRepo()
+    app.dependency_overrides[get_account_repo] = \
+        lambda: fake_account_repo
+    chat_id = 123
 
     # Run
     resp = client.post(
         "/message",
-        json={"user_id": 123, "text": "Hello"},
+        json={"chat_id": chat_id, "text": "Hello"},
     )
 
     # Check
@@ -22,19 +35,6 @@ def test_message_endpoint_saves_message_and_user(setup_test_db):
     data = resp.json()
     assert data == {"reply": "Hello Hello Hello", "keyboard_type": None}
 
-    with engine.connect() as conn:
-
-        message_rows = conn.execute(select(message_table)).all()
-        assert len(message_rows) == 1
-        message = message_rows[0]
-        assert message.id == 1
-        assert message.user_id == 123
-        assert message.text == "Hello"
-        assert message.created_at is not None
-
-        account_rows = conn.execute(select(account_table)).all()
-        assert len(account_rows) == 1
-        account = account_rows[0]
-        assert account.id == 1
-        assert account.user_id == 123
-        assert account.created_at is not None
+    assert fake_account_repo.exists(chat_id)
+    [received_text] = fake_user_message_repo.get_texts(chat_id)
+    assert received_text == "Hello"

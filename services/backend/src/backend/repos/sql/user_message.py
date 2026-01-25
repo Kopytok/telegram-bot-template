@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
+from typing import List
 
-from sqlalchemy import insert
+from sqlalchemy import insert, select
 from sqlalchemy.engine import Engine
 
 from backend.db import message_table
@@ -20,3 +21,16 @@ class SqlUserMessageRepo:
                     created_at=datetime.now(timezone.utc),
                 )
             )
+
+    def get_texts(self, chat_id: int) -> List[str]:
+
+        with self.engine.begin() as conn:
+            rows = conn.execute(
+                select(message_table.c.text)
+                .where(message_table.c.chat_id == chat_id)
+            )
+
+        texts = []
+        for r in rows:
+            texts.append(r.text)
+        return texts

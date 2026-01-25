@@ -3,9 +3,9 @@ def left_or_right(
     left: bool,
     right: bool,
 ) -> str:
+    output = text
     if left:
-        return "Left " + text
+        output = "Left " + output
     if right:
-        return text + " Right"
-    else:
-        return text
+        output = output + " Right"
+    return output

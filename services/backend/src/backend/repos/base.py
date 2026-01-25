@@ -1,12 +1,14 @@
-from typing import Protocol
+from typing import Protocol, List
 
 
 class AccountRepo(Protocol):
     def ensure_exists(self, chat_id: int) -> None: ...
+    def exists(self, chat_id: int) -> bool: ...
 
 
 class UserMessageRepo(Protocol):
     def persist(self, chat_id: int, text: str) -> None: ...
+    def get_texts(self, chat_id: int) -> List[str]: ...
 
 
 class BotMessageRepo(Protocol):
