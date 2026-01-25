@@ -6,15 +6,19 @@ from backend.models import (
     MessageIn,
     MessageOut,
 )
-from backend.storage import (
-    persist_incoming_message,
-    get_conversation_repo,
-    get_bot_message_text,
-    store_bot_message,
-)
 from domain.tripled import triple_message
 from llm import DialogueService, LLMClientFactory
-from llm.repo.base import ConversationRepository
+
+from backend.repos import (
+    AccountRepo,
+    UserMessageRepo,
+    BotMessageRepo,
+    ConversationRepository,
+    get_account_repo,
+    get_user_message_repo,
+    get_bot_message_repo,
+    get_conversation_repo,
+)
 
 app = FastAPI(lifespan=lifespan)
 
@@ -23,8 +27,11 @@ app = FastAPI(lifespan=lifespan)
 async def handle_message(
     msg: MessageIn,
     conversation_repo: ConversationRepository = Depends(get_conversation_repo),
+    account_repo: AccountRepo = Depends(get_account_repo),
+    user_message_repo: UserMessageRepo = Depends(get_user_message_repo),
 ) -> MessageOut:
-    persist_incoming_message(msg)
+    account_repo.ensure_exists(msg.user_id)
+    user_message_repo.persist(msg.user_id, msg.text)
 
     if msg.text.startswith("LLM:"):
         llm = LLMClientFactory.create("chatgpt")
@@ -59,9 +66,10 @@ class InlineActionResponse(BaseModel):
 @app.post("/some_endpoint", response_model=InlineActionResponse)
 async def handle_inline_action(
     payload: InlineActionRequest,
+    bot_message_repo: BotMessageRepo = Depends(get_bot_message_repo),
 ) -> InlineActionResponse:
     try:
-        text = get_bot_message_text(payload.message_id)
+        text = bot_message_repo.get_text(payload.message_id)
     except Exception:
         raise HTTPException(status_code=404, detail="Message not found")
 
@@ -88,8 +96,9 @@ class SaveAnswerResponse (BaseModel):
 @app.post("/save_answer", response_model=SaveAnswerResponse)
 async def handle_save_answer(
     payload: SaveAnswerRequest,
+    bot_message_repo: BotMessageRepo = Depends(get_bot_message_repo),
 ) -> SaveAnswerResponse:
-    store_bot_message(
+    bot_message_repo.create(
         message_id=payload.message_id,
         user_id=payload.user_id,
         text=payload.text,
