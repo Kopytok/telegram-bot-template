@@ -3,7 +3,7 @@ from typing import List
 from .models import Message
 
 
-class ConversationRepository(ABC):
+class ConversationRepo(ABC):
     @abstractmethod
     async def get_messages(self, conversation_id: str) -> List[Message]:
         pass

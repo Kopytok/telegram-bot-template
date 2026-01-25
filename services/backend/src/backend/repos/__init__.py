@@ -9,6 +9,6 @@ from .factory import (  # noqa
     get_bot_message_repo,
 )
 from .conversation import (  # noqa
-    ConversationRepository,
+    ConversationRepo,
     get_conversation_repo,
 )

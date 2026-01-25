@@ -3,7 +3,7 @@ from llm import (
     LLMClientFactory,
     DialogueService,
 )
-from llm.repo.in_memory import InMemoryConversationRepository
+from llm.repo.in_memory import InMemoryConversationRepo
 
 
 @pytest.mark.asyncio
@@ -13,7 +13,7 @@ async def test_dialogue_service():
     expected_response = "The answer"
     system_prompt = "The system prompt"
     llm = LLMClientFactory.create("fake", response=expected_response)
-    repo = InMemoryConversationRepository()
+    repo = InMemoryConversationRepo()
     service = DialogueService(llm, repo, system_prompt)
 
     # Run

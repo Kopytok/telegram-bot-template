@@ -1,5 +1,5 @@
 from datetime import datetime
-from llm.repo.base import ConversationRepository
+from llm.repo.base import ConversationRepo
 from .client import LLMClient
 from .repo.models import Message
 
@@ -9,7 +9,7 @@ class DialogueService:
     def __init__(
         self,
         llm: LLMClient,
-        repo: ConversationRepository,
+        repo: ConversationRepo,
         system_prompt: str,
     ):
         self.llm = llm

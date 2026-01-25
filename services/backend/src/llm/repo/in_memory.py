@@ -1,8 +1,8 @@
-from .base import ConversationRepository
+from .base import ConversationRepo
 from .models import Message
 
 
-class InMemoryConversationRepository(ConversationRepository):
+class InMemoryConversationRepo(ConversationRepo):
     def __init__(self):
         self.storage: dict[str, list[Message]] = {}
 

@@ -1,9 +1,9 @@
-from .base import ConversationRepository
+from .base import ConversationRepo
 from .models import Message
 from backend.settings import settings
 
 
-class RedisConversationRepository(ConversationRepository):
+class RedisConversationRepo(ConversationRepo):
     def __init__(self, redis):
         self.redis = redis
 

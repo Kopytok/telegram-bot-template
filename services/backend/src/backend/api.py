@@ -7,7 +7,7 @@ from backend.repos import (
     AccountRepo,
     UserMessageRepo,
     BotMessageRepo,
-    ConversationRepository,
+    ConversationRepo,
     get_account_repo,
     get_user_message_repo,
     get_bot_message_repo,
@@ -32,7 +32,7 @@ class MessageOut(BaseModel):
 @app.post("/message", response_model=MessageOut)
 async def handle_message(
     msg: MessageIn,
-    conversation_repo: ConversationRepository = Depends(get_conversation_repo),
+    conversation_repo: ConversationRepo = Depends(get_conversation_repo),
     account_repo: AccountRepo = Depends(get_account_repo),
     user_message_repo: UserMessageRepo = Depends(get_user_message_repo),
 ) -> MessageOut:
