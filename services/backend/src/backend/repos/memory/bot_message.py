@@ -3,8 +3,8 @@ class InMemoryBotMessageRepo:
     def __init__(self):
         self._data: dict[int, str] = {}
 
-    def create(self, message_id: int, user_id: int, text: str) -> None:
-        _ = user_id
+    def create(self, message_id: int, chat_id: int, text: str) -> None:
+        _ = chat_id
         self._data[message_id] = text
 
     def get_text(self, message_id: int) -> str:

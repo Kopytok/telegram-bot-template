@@ -1,14 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 
 from backend.db import lifespan
-from backend.models import (
-    MessageIn,
-    MessageOut,
-)
-from domain.tripled import triple_message
-from llm import DialogueService, LLMClientFactory
-
 from backend.repos import (
     AccountRepo,
     UserMessageRepo,
@@ -19,8 +13,20 @@ from backend.repos import (
     get_bot_message_repo,
     get_conversation_repo,
 )
+from domain.tripled import triple_message
+from llm import DialogueService, LLMClientFactory
 
 app = FastAPI(lifespan=lifespan)
+
+
+class MessageIn(BaseModel):
+    chat_id: int
+    text: str
+
+
+class MessageOut(BaseModel):
+    reply: str
+    keyboard_type: Optional[str] = None
 
 
 @app.post("/message", response_model=MessageOut)
@@ -30,8 +36,9 @@ async def handle_message(
     account_repo: AccountRepo = Depends(get_account_repo),
     user_message_repo: UserMessageRepo = Depends(get_user_message_repo),
 ) -> MessageOut:
-    account_repo.ensure_exists(msg.user_id)
-    user_message_repo.persist(msg.user_id, msg.text)
+
+    account_repo.ensure_exists(msg.chat_id)
+    user_message_repo.persist(msg.chat_id, msg.text)
 
     if msg.text.startswith("LLM:"):
         llm = LLMClientFactory.create("chatgpt")
@@ -41,7 +48,7 @@ async def handle_message(
             system_prompt="The system prompt",
         )
         reply = await service.handle_user_message(
-            user_id=str(msg.user_id),
+            chat_id=str(msg.chat_id),
             text=msg.text[4:],
         )
         keyboard_type = "inline_flow"
@@ -85,7 +92,7 @@ async def handle_inline_action(
 
 class SaveAnswerRequest (BaseModel):
     message_id: int
-    user_id: int
+    chat_id: int
     text: str
 
 
@@ -100,7 +107,7 @@ async def handle_save_answer(
 ) -> SaveAnswerResponse:
     bot_message_repo.create(
         message_id=payload.message_id,
-        user_id=payload.user_id,
+        chat_id=payload.chat_id,
         text=payload.text,
     )
     return SaveAnswerResponse(status="OK")

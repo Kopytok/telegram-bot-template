@@ -25,12 +25,12 @@ async def send_some_endpoint(
 
 async def save_answer_endpoint(
     message_id: int,
-    user_id: int,
+    chat_id: int,
     text: str,
 ) -> str:
     payload = {
         "message_id": message_id,
-        "user_id": user_id,
+        "chat_id": chat_id,
         "text": text,
     }
 

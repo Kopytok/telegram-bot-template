@@ -11,11 +11,11 @@ class SqlBotMessageRepo:
     def __init__(self, engine: Engine):
         self.engine = engine
 
-    def create(self, message_id: int, user_id: int, text: str) -> None:
+    def create(self, message_id: int, chat_id: int, text: str) -> None:
         with self.engine.begin() as conn:
             conn.execute(insert(bot_message_table).values(
                 message_id=message_id,
-                user_id=user_id,
+                chat_id=chat_id,
                 text=text,
                 created_at=datetime.now(timezone.utc),
             ))

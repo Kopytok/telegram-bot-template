@@ -16,10 +16,10 @@ router = Router()
 
 
 async def send_to_backend(
-    user_id: int,
+    chat_id: int,
     text: str,
 ) -> dict:
-    payload = {"user_id": user_id, "text": text}
+    payload = {"chat_id": chat_id, "text": text}
 
     async with ClientSession() as session:
         async with session.post(BACKEND_URL+"/message", json=payload) as res:
@@ -36,7 +36,7 @@ async def any_text(message: Message) -> None:
     request_text: str = message.text or ""
 
     backend_reply = await send_to_backend(
-        user_id=message.chat.id,
+        chat_id=message.chat.id,
         text=request_text,
     )
 
@@ -61,7 +61,7 @@ async def handle_backend_reply(
     )
     await save_answer_endpoint(
         message_id=response.message_id,
-        user_id=response.chat.id,
+        chat_id=response.chat.id,
         text=reply_text,
     )
 

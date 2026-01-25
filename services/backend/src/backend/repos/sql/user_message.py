@@ -11,11 +11,11 @@ class SqlUserMessageRepo:
     def __init__(self, engine: Engine):
         self.engine = engine
 
-    def persist(self, user_id: int, text: str) -> None:
+    def persist(self, chat_id: int, text: str) -> None:
         with self.engine.begin() as conn:
             conn.execute(
                 insert(message_table).values(
-                    user_id=user_id,
+                    chat_id=chat_id,
                     text=text,
                     created_at=datetime.now(timezone.utc),
                 )
