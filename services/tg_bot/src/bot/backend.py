@@ -2,7 +2,7 @@ from aiohttp import ClientSession
 from bot.const import BACKEND_URL
 
 
-async def send_some_endpoint(
+async def send_left_or_right(
     message_id: int,
     left: bool,
     right: bool,
@@ -15,7 +15,7 @@ async def send_some_endpoint(
 
     async with ClientSession() as session:
         async with session.post(
-            BACKEND_URL+"/some_endpoint",
+            BACKEND_URL+"/left_or_right",
             json=payload,
         ) as response:
             response.raise_for_status()

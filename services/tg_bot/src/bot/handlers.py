@@ -7,7 +7,7 @@ from bot.keyboard import (
     left_right_keyboard,
 )
 from bot.backend import (
-    send_some_endpoint,
+    send_left_or_right,
     save_answer_endpoint,
 )
 from bot.const import BACKEND_URL
@@ -78,7 +78,7 @@ async def on_left_right_callback(query: CallbackQuery) -> None:
     left = True if query.data == "LEFT" else False
     right = True if query.data == "RIGHT" else False
 
-    new_text = await send_some_endpoint(message_id, left, right)
+    new_text = await send_left_or_right(message_id, left, right)
 
     await message.edit_text(
         new_text,

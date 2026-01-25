@@ -15,13 +15,13 @@ client = TestClient(app)
         (False, False, "YO"),
     )
 )
-def test_some_endpoint(mocker, left, right, expected):
+def test_left_or_right(mocker, left, right, expected):
     # Setup
     mocker.patch("backend.api.get_bot_message_text", return_value="YO")
 
     # Run
     res = client.post(
-        "/some_endpoint",
+        "/left_or_right",
         json={"message_id": 123, "left": left, "right": right},
     )
 

@@ -13,7 +13,10 @@ from backend.repos import (
     get_bot_message_repo,
     get_conversation_repo,
 )
-from domain.tripled import triple_message
+from domain import (
+    triple_message,
+    left_or_right,
+)
 from llm import DialogueService, LLMClientFactory
 
 app = FastAPI(lifespan=lifespan)
@@ -70,8 +73,8 @@ class InlineActionResponse(BaseModel):
     text: str
 
 
-@app.post("/some_endpoint", response_model=InlineActionResponse)
-async def handle_inline_action(
+@app.post("/left_or_right", response_model=InlineActionResponse)
+async def handle_left_or_right(
     payload: InlineActionRequest,
     bot_message_repo: BotMessageRepo = Depends(get_bot_message_repo),
 ) -> InlineActionResponse:
@@ -80,13 +83,7 @@ async def handle_inline_action(
     except Exception:
         raise HTTPException(status_code=404, detail="Message not found")
 
-    new_text = text
-    if payload.left:
-        new_text = "Left " + new_text
-
-    if payload.right:
-        new_text = new_text + " Right"
-
+    new_text = left_or_right(text, payload.left, payload.right)
     return InlineActionResponse(text=new_text)
 
 
