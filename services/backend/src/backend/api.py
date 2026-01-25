@@ -17,7 +17,7 @@ from domain import (
     triple_message,
     left_or_right,
 )
-from llm import DialogueService, LLMClientFactory
+from llm import DialogueService, get_llm_client
 
 app = FastAPI(lifespan=lifespan)
 
@@ -44,7 +44,7 @@ async def handle_message(
     user_message_repo.persist(msg.chat_id, msg.text)
 
     if msg.text.startswith("LLM:"):
-        llm = LLMClientFactory.create("chatgpt")
+        llm = get_llm_client("chatgpt")
         service = DialogueService(
             llm,
             repo=conversation_repo,

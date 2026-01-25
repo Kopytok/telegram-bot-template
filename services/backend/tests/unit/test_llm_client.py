@@ -1,6 +1,6 @@
 import pytest
 from llm import (
-    LLMClientFactory,
+    get_llm_client,
     DialogueService,
 )
 from llm.repo.in_memory import InMemoryConversationRepo
@@ -12,7 +12,7 @@ async def test_dialogue_service():
     user_id = "USER_ID"
     expected_response = "The answer"
     system_prompt = "The system prompt"
-    llm = LLMClientFactory.create("fake", response=expected_response)
+    llm = get_llm_client("fake", response=expected_response)
     repo = InMemoryConversationRepo()
     service = DialogueService(llm, repo, system_prompt)
 
