@@ -13,6 +13,7 @@ from sqlalchemy import (
     BigInteger,
     DateTime,
     Text,
+    Boolean,
 )
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import StaticPool
@@ -81,6 +82,21 @@ bot_message_table = Table(
         Text,
         nullable=False,
     ),
+    Column(
+        "created_at",
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    ),
+)
+
+answer_config_table = Table(
+    "answer_config",
+    metadata,
+    Column("chat_id", Integer, primary_key=True),
+    Column("left", Boolean),
+    Column("right", Boolean),
     Column(
         "created_at",
         DateTime(timezone=True),

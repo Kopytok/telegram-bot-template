@@ -8,6 +8,7 @@ from bot.keyboard import (
 from bot.backend import (
     send_to_backend,
     send_left_or_right,
+    send_left_right_switch,
     save_answer_endpoint,
 )
 
@@ -57,8 +58,28 @@ async def any_text(message: Message) -> None:
     )
 
 
+# @router.callback_query(F.data.in_(["LEFT", "RIGHT"]))
+# async def on_left_right_callback(query: CallbackQuery) -> None:
+#     await query.answer()
+# 
+#     message = query.message
+#     if message is None:
+#         return
+# 
+#     message_id = message.message_id
+#     left = True if query.data == "LEFT" else False
+#     right = True if query.data == "RIGHT" else False
+# 
+#     new_text = await send_left_or_right(message_id, left, right)
+# 
+#     await message.edit_text(
+#         new_text,
+#         reply_markup=left_right_keyboard(),
+#     )
+
+
 @router.callback_query(F.data.in_(["LEFT", "RIGHT"]))
-async def on_left_right_callback(query: CallbackQuery) -> None:
+async def on_left_right_switch_callback(query: CallbackQuery) -> None:
     await query.answer()
 
     message = query.message
@@ -66,10 +87,11 @@ async def on_left_right_callback(query: CallbackQuery) -> None:
         return
 
     message_id = message.message_id
+    chat_id = message.chat.id
     left = True if query.data == "LEFT" else False
     right = True if query.data == "RIGHT" else False
 
-    new_text = await send_left_or_right(message_id, left, right)
+    new_text = await send_left_right_switch(message_id, chat_id, left, right)
 
     await message.edit_text(
         new_text,

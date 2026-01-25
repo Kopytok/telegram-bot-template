@@ -7,15 +7,18 @@ from backend.repos import (
     AccountRepo,
     UserMessageRepo,
     BotMessageRepo,
+    AnswerConfigRepo,
     ConversationRepo,
     get_account_repo,
     get_user_message_repo,
     get_bot_message_repo,
+    get_answer_config_repo,
     get_conversation_repo,
 )
 from domain import (
     triple_message,
     left_or_right,
+    left_right_switch,
 )
 from llm import DialogueService, get_llm_client
 
@@ -63,30 +66,6 @@ async def handle_message(
     return MessageOut(reply=reply, keyboard_type=keyboard_type)
 
 
-class InlineActionRequest(BaseModel):
-    message_id: int
-    left: bool = False
-    right: bool = False
-
-
-class InlineActionResponse(BaseModel):
-    text: str
-
-
-@app.post("/left_or_right", response_model=InlineActionResponse)
-async def handle_left_or_right(
-    payload: InlineActionRequest,
-    bot_message_repo: BotMessageRepo = Depends(get_bot_message_repo),
-) -> InlineActionResponse:
-    try:
-        text = bot_message_repo.get_text(payload.message_id)
-    except Exception:
-        raise HTTPException(status_code=404, detail="Message not found")
-
-    new_text = left_or_right(text, payload.left, payload.right)
-    return InlineActionResponse(text=new_text)
-
-
 class SaveAnswerRequest (BaseModel):
     message_id: int
     chat_id: int
@@ -108,3 +87,57 @@ async def handle_save_answer(
         text=payload.text,
     )
     return SaveAnswerResponse(status="OK")
+
+
+class LeftRightRequest(BaseModel):
+    message_id: int
+    left: bool = False
+    right: bool = False
+
+
+class LeftRightResponse(BaseModel):
+    text: str
+
+
+@app.post("/left_or_right", response_model=LeftRightResponse)
+async def handle_left_or_right(
+    payload: LeftRightRequest,
+    bot_message_repo: BotMessageRepo = Depends(get_bot_message_repo),
+) -> LeftRightResponse:
+    try:
+        text = bot_message_repo.get_text(payload.message_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    new_text = left_or_right(text, payload.left, payload.right)
+    return LeftRightResponse(text=new_text)
+
+
+class LeftRightSwitchRequest(BaseModel):
+    message_id: int
+    chat_id: int
+    toggle_left: bool = False
+    toggle_right: bool = False
+
+
+class LeftRightSwitchResponse(BaseModel):
+    text: str
+
+
+@app.post("/left_right_switch", response_model=LeftRightSwitchResponse)
+async def handle_left_right_switch(
+    payload: LeftRightSwitchRequest,
+    bot_message_repo: BotMessageRepo = Depends(get_bot_message_repo),
+    answer_config_repo: AnswerConfigRepo = Depends(get_answer_config_repo)
+) -> LeftRightSwitchResponse:
+    message_text = bot_message_repo.get_text(payload.message_id)
+    chat_id = payload.chat_id
+    answer_config = answer_config_repo.get_config(chat_id)
+
+    text, config = left_right_switch(
+        message_text, answer_config,
+        payload.toggle_left, payload.toggle_right
+    )
+    answer_config_repo.set_config(chat_id, *config)
+
+    return LeftRightSwitchResponse(text=text)

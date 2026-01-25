@@ -36,6 +36,29 @@ async def send_left_or_right(
             return data["text"]
 
 
+async def send_left_right_switch(
+    message_id: int,
+    chat_id: int,
+    toggle_left: bool,
+    toggle_right: bool,
+) -> str:
+    payload = {
+        "message_id": message_id,
+        "chat_id": chat_id,
+        "toggle_left": toggle_left,
+        "toggle_right": toggle_right,
+    }
+
+    async with ClientSession() as session:
+        async with session.post(
+            BACKEND_URL+"/left_right_switch",
+            json=payload,
+        ) as response:
+            response.raise_for_status()
+            data = await response.json()
+            return data["text"]
+
+
 async def save_answer_endpoint(
     message_id: int,
     chat_id: int,
