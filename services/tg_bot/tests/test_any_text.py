@@ -1,4 +1,5 @@
 import pytest
+
 from aiogram.types import InlineKeyboardMarkup
 
 from bot.handlers import send_to_backend, handle_backend_reply
@@ -11,7 +12,7 @@ async def test_send_to_backend_response(mocker):
     response_data = {"reply": "Backend response"}
     fake_session = FakeClientSession(response_data)
     mocker.patch(
-        "bot.handlers.ClientSession",
+        "bot.backend.ClientSession",
         return_value=fake_session,
     )
 
@@ -22,13 +23,12 @@ async def test_send_to_backend_response(mocker):
     assert reply == response_data
     post_call = fake_session.calls[0]
     assert post_call.url == "http://backend:8000/message"
-    assert post_call.json == {"user_id": 123, "text": "Hello"}
+    assert post_call.json == {"chat_id": 123, "text": "Hello"}
 
 
 @pytest.mark.asyncio
-async def test_fallback_shows_keyboard(mocker):
+async def test_fallback_shows_keyboard():
     # Setup
-    save_answer_mock = mocker.patch("bot.handlers.save_answer_endpoint")
     message = FakeMessage.create(
         message_id=132,
         user_id=321,
@@ -45,13 +45,10 @@ async def test_fallback_shows_keyboard(mocker):
     assert "reply_markup" in call.kwargs
     assert isinstance(call.kwargs["reply_markup"], InlineKeyboardMarkup)
 
-    assert save_answer_mock.called
-
 
 @pytest.mark.asyncio
-async def test_fallback_inline_flow(mocker):
+async def test_fallback_inline_flow():
     # Setup
-    save_answer_mock = mocker.patch("bot.handlers.save_answer_endpoint")
     message = FakeMessage.create(
         message_id=132,
         user_id=321,
@@ -75,4 +72,3 @@ async def test_fallback_inline_flow(mocker):
         first_call.kwargs["reply_markup"],
         InlineKeyboardMarkup,
     ), "Should send Inline keyboard"
-    assert save_answer_mock.called

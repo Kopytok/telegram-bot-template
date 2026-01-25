@@ -1,30 +1,35 @@
 from typing import Optional
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
-from aiohttp import ClientSession
 from bot.keyboard import (
     inline_keyboard,
     left_right_keyboard,
 )
 from bot.backend import (
+    send_to_backend,
     send_left_or_right,
     save_answer_endpoint,
 )
-from bot.const import BACKEND_URL
 
 router = Router()
 
 
-async def send_to_backend(
-    chat_id: int,
-    text: str,
-) -> dict:
-    payload = {"chat_id": chat_id, "text": text}
+async def handle_backend_reply(
+    message: Message,
+    backend_reply: dict,
+) -> Message:
+    reply_text: str = backend_reply["reply"]
+    keyboard_type: Optional[str] = backend_reply.get("keyboard_type")
 
-    async with ClientSession() as session:
-        async with session.post(BACKEND_URL+"/message", json=payload) as res:
-            res.raise_for_status()
-            return await res.json()
+    if keyboard_type == "inline_flow":
+        kb = inline_keyboard()
+    else:
+        kb = left_right_keyboard()
+
+    return await message.answer(
+        reply_text,
+        reply_markup=kb,
+    )
 
 
 @router.message()
@@ -40,29 +45,15 @@ async def any_text(message: Message) -> None:
         text=request_text,
     )
 
-    await handle_backend_reply(message, backend_reply)
-
-
-async def handle_backend_reply(
-    message: Message,
-    backend_reply: dict,
-) -> None:
-    reply_text: str = backend_reply["reply"]
-    keyboard_type: Optional[str] = backend_reply.get("keyboard_type")
-
-    if keyboard_type == "inline_flow":
-        kb = inline_keyboard()
-    else:
-        kb = left_right_keyboard()
-
-    response = await message.answer(
-        reply_text,
-        reply_markup=kb,
+    response = await handle_backend_reply(
+        message=message,
+        backend_reply=backend_reply,
     )
+
     await save_answer_endpoint(
         message_id=response.message_id,
         chat_id=response.chat.id,
-        text=reply_text,
+        text=backend_reply["reply"],
     )
 
 

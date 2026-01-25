@@ -1,5 +1,18 @@
 from aiohttp import ClientSession
-from bot.const import BACKEND_URL
+
+BACKEND_URL = "http://backend:8000"
+
+
+async def send_to_backend(
+    chat_id: int,
+    text: str,
+) -> dict:
+    payload = {"chat_id": chat_id, "text": text}
+
+    async with ClientSession() as session:
+        async with session.post(BACKEND_URL+"/message", json=payload) as res:
+            res.raise_for_status()
+            return await res.json()
 
 
 async def send_left_or_right(
