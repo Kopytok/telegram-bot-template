@@ -1,9 +1,6 @@
 from fastapi.testclient import TestClient
-from sqlalchemy import select
 
 from backend.api import app
-from backend.db import account_table, message_table, engine
-from backend.repos.base import AccountRepo
 from backend.repos.factory import (
     get_user_message_repo,
     get_account_repo,

@@ -1,4 +1,4 @@
-from typing import Protocol, List
+from typing import Protocol, List, Tuple
 
 
 class AccountRepo(Protocol):
@@ -14,3 +14,8 @@ class UserMessageRepo(Protocol):
 class BotMessageRepo(Protocol):
     def create(self, message_id: int, chat_id: int, text: str) -> None: ...
     def get_text(self, message_id: int) -> str: ...
+
+
+class AnswerConfigRepo(Protocol):
+    def set_config(self, chat_id: int, left: bool, right: bool) -> None: ...
+    def get_config(self, chat_id: int) -> Tuple[bool, bool]: ...
