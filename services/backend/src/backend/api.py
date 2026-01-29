@@ -21,6 +21,7 @@ from domain import (
     left_right_switch,
 )
 from llm import DialogueService, get_llm_client
+from llm.factory import build_workflow
 
 app = FastAPI(lifespan=lifespan)
 
@@ -58,6 +59,12 @@ async def handle_message(
             text=msg.text[4:],
         )
         keyboard_type = "inline_flow"
+
+    elif msg.text.startswith("Pipeline:"):
+        llm = get_llm_client("chatgpt")
+        workflow = build_workflow(llm)
+        reply = await workflow.run(msg.text[9:])
+        keyboard_type = None
 
     else:
         reply = triple_message(msg.text)

@@ -1,0 +1,16 @@
+from llm.context import LLMContext
+from llm.client import LLMClient
+
+
+class MathTask:
+
+    def __init__(self, llm: LLMClient):
+        self.llm = llm
+
+    async def run(self, ctx: LLMContext) -> None:
+        response = await self.llm.chat(
+            messages=[
+                {"role": "user", "content": "What is 2 + 2?"},
+            ]
+        )
+        ctx.results["math"] = response
