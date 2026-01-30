@@ -47,7 +47,7 @@ async def handle_message(
     account_repo.ensure_exists(msg.chat_id)
     user_message_repo.persist(msg.chat_id, msg.text)
 
-    if msg.text.startswith("LLM:"):
+    if msg.text.startswith("Dialogue:"):
         llm = get_llm_client("chatgpt")
         service = DialogueService(
             llm,
