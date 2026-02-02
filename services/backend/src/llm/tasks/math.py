@@ -1,5 +1,6 @@
 from llm.context import LLMContext
 from llm.client import LLMClient
+from llm.models import LeftRightStep
 
 
 class MathTask:
@@ -13,4 +14,4 @@ class MathTask:
                 {"role": "user", "content": "What is 2 + 2?"},
             ]
         )
-        ctx.results["math"] = response
+        ctx.results[LeftRightStep.RIGHT] = response

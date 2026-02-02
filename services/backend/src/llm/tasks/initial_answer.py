@@ -1,5 +1,6 @@
 from llm.context import LLMContext
 from llm.client import LLMClient
+from llm.models import LeftRightStep
 
 
 SYSTEM_PROMPT = "You're a helpful assistant."
@@ -17,4 +18,4 @@ class InitialAnswerTask:
                 {"role": "user", "content": ctx.user_message},
             ]
         )
-        ctx.results["initial_answer"] = response
+        ctx.results[LeftRightStep.MAIN] = response
