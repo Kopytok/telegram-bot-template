@@ -3,7 +3,7 @@ from llm.client import LLMClient
 from llm.models import LeftRightStep
 
 
-class MathTask:
+class RightTask:
 
     def __init__(self, llm: LLMClient):
         self.llm = llm
