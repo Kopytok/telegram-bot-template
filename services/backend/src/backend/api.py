@@ -22,6 +22,7 @@ from domain import (
 )
 from llm import DialogueService, get_llm_client
 from llm.factory import build_workflow
+from llm.models import LeftRightStep
 
 app = FastAPI(lifespan=lifespan)
 
@@ -34,6 +35,13 @@ class MessageIn(BaseModel):
 class MessageOut(BaseModel):
     reply: str
     keyboard_type: Optional[str] = None
+
+
+STEPS = [
+    LeftRightStep.MAIN,
+    LeftRightStep.LEFT,
+    LeftRightStep.RIGHT,
+]
 
 
 @app.post("/message", response_model=MessageOut)
@@ -63,7 +71,7 @@ async def handle_message(
     elif msg.text.startswith("Pipeline:"):
         llm = get_llm_client("chatgpt")
         workflow = build_workflow(llm)
-        reply = await workflow.run(msg.text[9:])
+        reply = await workflow.run(msg.text[9:], STEPS)
         keyboard_type = None
 
     else:
