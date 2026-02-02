@@ -17,7 +17,6 @@ from backend.repos import (
 )
 from domain import (
     triple_message,
-    left_or_right,
     left_right_switch,
 )
 from llm import DialogueService, get_llm_client
@@ -56,6 +55,7 @@ async def handle_message(
     user_message_repo.persist(msg.chat_id, msg.text)
 
     if msg.text.startswith("Dialogue:"):
+
         llm = get_llm_client("chatgpt")
         service = DialogueService(
             llm,
@@ -69,12 +69,14 @@ async def handle_message(
         keyboard_type = "inline_flow"
 
     elif msg.text.startswith("Pipeline:"):
+
         llm = get_llm_client("chatgpt")
         workflow = build_workflow(llm)
         reply = await workflow.run(msg.text[9:], STEPS)
         keyboard_type = None
 
     else:
+
         reply = triple_message(msg.text)
         keyboard_type = None
 
@@ -104,30 +106,6 @@ async def handle_save_answer(
     return SaveAnswerResponse(status="OK")
 
 
-class LeftRightRequest(BaseModel):
-    message_id: int
-    left: bool = False
-    right: bool = False
-
-
-class LeftRightResponse(BaseModel):
-    text: str
-
-
-@app.post("/left_or_right", response_model=LeftRightResponse)
-async def handle_left_or_right(
-    payload: LeftRightRequest,
-    bot_message_repo: BotMessageRepo = Depends(get_bot_message_repo),
-) -> LeftRightResponse:
-    try:
-        text = bot_message_repo.get_text(payload.message_id)
-    except Exception:
-        raise HTTPException(status_code=404, detail="Message not found")
-
-    new_text = left_or_right(text, payload.left, payload.right)
-    return LeftRightResponse(text=new_text)
-
-
 class LeftRightSwitchRequest(BaseModel):
     message_id: int
     chat_id: int
@@ -145,7 +123,11 @@ async def handle_left_right_switch(
     bot_message_repo: BotMessageRepo = Depends(get_bot_message_repo),
     answer_config_repo: AnswerConfigRepo = Depends(get_answer_config_repo)
 ) -> LeftRightSwitchResponse:
-    message_text = bot_message_repo.get_text(payload.message_id)
+    try:
+        message_text = bot_message_repo.get_text(payload.message_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Message not found")
+
     chat_id = payload.chat_id
     answer_config = answer_config_repo.get_config(chat_id)
 

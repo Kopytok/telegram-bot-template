@@ -1,6 +1,6 @@
 import pytest
 
-from bot.backend import send_left_or_right
+from bot.backend import send_left_right_switch
 from fakes import FakeClientSession
 
 
@@ -11,7 +11,7 @@ from fakes import FakeClientSession
         (False, True, "YO Right"),
     )
 )
-async def test_send_left_or_right(
+async def test_send_left_right_switch(
     mocker,
     left,
     right,
@@ -26,10 +26,15 @@ async def test_send_left_or_right(
     )
 
     # Run
-    received = await send_left_or_right(123, left, right)
+    received = await send_left_right_switch(123, 1, left, right)
 
     # Check
     assert received == expected
     post_call = fake_session.calls[0]
-    assert post_call.url == "http://backend:8000/left_or_right"
-    assert post_call.json == {"message_id": 123, "left": left, "right": right}
+    assert post_call.url == "http://backend:8000/left_right_switch"
+    assert post_call.json == {
+        "message_id": 123,
+        "chat_id": 1,
+        "toggle_left": left,
+        "toggle_right": right,
+    }
